@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to FastAPI 🚀</h1>
+        <p>Create a new user below</p>
+        <form id="userForm">
+            <input type="text" id="name" name="name" placeholder="Name" required>
+            <input type="number" id="age" name="age" placeholder="Age" required>
+            <input type="email" id="email" name="email" placeholder="Email" required>
+            <button type="submit">Create User</button>
+        </form>
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        document.getElementById("userForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById("name").value,
+                age: document.getElementById("age").value,
+                email: document.getElementById("email").value
+            };
+            
+            const submitBtn = document.querySelector("button[type='submit']");
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = "Creating...";
+            
+            try {
+                const response = await fetch("/user/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById("result");
+                resultDiv.style.display = "block";
+                resultDiv.innerText = JSON.stringify(result, null, 2);
+                
+                if (response.ok) {
+                    document.getElementById("userForm").reset();
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById("result");
+                resultDiv.style.display = "block";
+                resultDiv.style.color = "#f87171";
+                resultDiv.innerText = "An error occurred.";
+            } finally {
+                submitBtn.innerText = originalText;
+            }
+        });
+    </script>
+</body>
+</html>
