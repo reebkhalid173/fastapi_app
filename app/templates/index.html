@@ -3,62 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastAPI Application</title>
+    <meta name="description" content="A structured FastAPI web application with user management.">
+    <title>FastAPI Web App</title>
     <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to FastAPI 🚀</h1>
-        <p>Create a new user below</p>
-        <form id="userForm">
-            <input type="text" id="name" name="name" placeholder="Name" required>
-            <input type="number" id="age" name="age" placeholder="Age" required>
-            <input type="email" id="email" name="email" placeholder="Email" required>
-            <button type="submit">Create User</button>
+
+        <div class="badge">⚡ FastAPI &nbsp;·&nbsp; v1.0.0</div>
+
+        <h1>User Manager</h1>
+        <p class="subtitle">Create and explore users via a live REST API.</p>
+
+        <form id="userForm" novalidate>
+            <div class="field">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="e.g. John Doe" required>
+            </div>
+
+            <div class="field">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" placeholder="e.g. 28" min="1" max="150" required>
+            </div>
+
+            <div class="field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="e.g. john@example.com" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Create User</button>
         </form>
+
         <div id="result"></div>
+
+        <hr class="divider">
+
+        <div class="links">
+            <a href="/about" class="link-btn" title="About this app">ℹ️ About</a>
+            <a href="/user/" class="link-btn" title="List all users" target="_blank">👥 All Users</a>
+            <a href="/docs" class="link-btn" title="Swagger UI docs" target="_blank">📖 Swagger</a>
+            <a href="/redoc" class="link-btn" title="ReDoc documentation" target="_blank">📄 ReDoc</a>
+        </div>
+
     </div>
-    
+
     <script>
-        document.getElementById("userForm").addEventListener("submit", async (e) => {
+        const form    = document.getElementById('userForm');
+        const result  = document.getElementById('result');
+        const btn     = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const data = {
-                name: document.getElementById("name").value,
-                age: document.getElementById("age").value,
-                email: document.getElementById("email").value
+
+            const payload = {
+                name:  document.getElementById('name').value.trim(),
+                age:   parseInt(document.getElementById('age').value, 10),
+                email: document.getElementById('email').value.trim()
             };
-            
-            const submitBtn = document.querySelector("button[type='submit']");
-            const originalText = submitBtn.innerText;
-            submitBtn.innerText = "Creating...";
-            
+
+            // Basic client-side guard
+            if (!payload.name || isNaN(payload.age) || !payload.email) {
+                showResult('⚠️  Please fill in all fields correctly.', 'error');
+                return;
+            }
+
+            btn.disabled    = true;
+            btn.textContent = '⏳ Creating…';
+
             try {
-                const response = await fetch("/user/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(data)
+                const res  = await fetch('/user/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-                
-                const result = await response.json();
-                const resultDiv = document.getElementById("result");
-                resultDiv.style.display = "block";
-                resultDiv.innerText = JSON.stringify(result, null, 2);
-                
-                if (response.ok) {
-                    document.getElementById("userForm").reset();
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult('✅  ' + JSON.stringify(data, null, 2), 'success');
+                    form.reset();
+                } else {
+                    // Show FastAPI validation detail if available
+                    const msg = data.detail
+                        ? JSON.stringify(data.detail, null, 2)
+                        : JSON.stringify(data, null, 2);
+                    showResult('❌  Validation Error:\n' + msg, 'error');
                 }
-            } catch (error) {
-                const resultDiv = document.getElementById("result");
-                resultDiv.style.display = "block";
-                resultDiv.style.color = "#f87171";
-                resultDiv.innerText = "An error occurred.";
+            } catch (err) {
+                showResult('🔌  Network error — is the server running?', 'error');
             } finally {
-                submitBtn.innerText = originalText;
+                btn.disabled    = false;
+                btn.textContent = 'Create User';
             }
         });
+
+        function showResult(text, type) {
+            result.className = type;   // 'success' or 'error'
+            result.textContent = text;
+            result.style.display = 'block';
+
+            // Re-trigger animation
+            result.style.animation = 'none';
+            result.offsetHeight;       // reflow
+            result.style.animation = '';
+        }
     </script>
 </body>
 </html>

@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from app.routes import home, user
+import os
 
-app = FastAPI()
+app = FastAPI(title="FastAPI Web App", version="1.0.0")
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Static files — served from app/static/
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
-# include routers
+# Routers
 app.include_router(home.router)
-app.include_router(user.router) 
+app.include_router(user.router)
