@@ -12,9 +12,11 @@ env/
 ENV/
 
 # Environment variables — NEVER commit secrets
+# (The .env.example template IS committed intentionally)
 .env
-*.env
-.env.*
+.env.local
+.env.production
+.env.staging
 
 # Distribution / packaging
 dist/
